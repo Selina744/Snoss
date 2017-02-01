@@ -1,0 +1,10 @@
+Registers: 
+Register 0 has value 9
+Register 1 has value 23
+Register 2 has value 11
+Register 3 has value 340
+Register 4 has value 14
+Register 5 has value 34
+Instruction: Executing Print, memoryAddress: -13108
+Instruction Pointer: 28
+Optional info: Read from pcb failed. RSL: -13056, pcbStart: 52, pcbSize: 500

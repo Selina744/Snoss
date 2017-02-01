@@ -1,0 +1,6 @@
+D:\Homework\Projects\Snoss\Snoss\bin\Debug\Snoss.exe.config
+D:\Homework\Projects\Snoss\Snoss\bin\Debug\Snoss.exe
+D:\Homework\Projects\Snoss\Snoss\bin\Debug\Snoss.pdb
+D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.csprojResolveAssemblyReference.cache
+D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.exe
+D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.pdb

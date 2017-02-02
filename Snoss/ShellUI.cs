@@ -46,7 +46,8 @@ namespace Snoss
 
         public void ListRunningProcessesWithIds()
         {
-            
+            //Displays the Pid, file which the process is executing, the register values and the instruction pointer 
+            //for EACH of the current processes.
         }
 
         public void Exit()

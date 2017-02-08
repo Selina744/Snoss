@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Snoss
 {
@@ -16,6 +17,7 @@ namespace Snoss
         private int instructionStart;
         private int pcbStart;
         Ram ram = new Ram();
+        Timer timer = new Timer(500);
 
         private string instructionWords = null;
 
@@ -93,10 +95,51 @@ namespace Snoss
         private int lastTime = 0;
         private bool TimeToSwitch()
         {
+            //time to milliseconds : 5
+            bool switchProcess = false;
+            DateTime newTime = DateTime.Now;
+            var switchTime = newTime.AddMilliseconds(5);
+
+            do
+            {
+                if (newTime != switchTime)
+                {
+                    switchProcess = true;
+                }
+                newTime = DateTime.Now;
+            } while (!switchProcess);
+
             //int newTime = DateTime.
-            return true;
+            return switchProcess;
         }
 
+        /// <summary>
+        ///  Get the process information 
+        /// </summary>
+        public void retrieveProcessInfo()
+        {
+            //for each process in process id:
+            //display 
+            foreach (var process in  processIds)
+            {
+                Console.WriteLine("Process ID : " + process);
+                Console.WriteLine("Process State : ");
+                Console.WriteLine("Process File Name : "  );
+                Console.WriteLine("Process instruction pointer : " );
+                Console.WriteLine("Register Values : ");
+
+            }
+        }
+        
+        /// kill process or remove all data of process with the id from the list of ids
+        /// 
+        public void removeProcessFromList(int id)
+        {  //if the process contains the id
+            if(processIds.Contains(id))
+            {
+                processIds.Remove(id);
+            }
+        }
         public void PrintRegisters()
         {
             for (int i = 0; i < registers.Length; i++)

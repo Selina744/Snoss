@@ -94,6 +94,7 @@ namespace Snoss
         private bool TimeToSwitch()
         {
             //int newTime = DateTime.
+            return true;
         }
 
         public void PrintRegisters()

@@ -90,6 +90,7 @@ namespace Snoss
                 string command = Console.ReadLine();
                 ParseCommand(command);
             }
+            //might need to kill process remove all process ids
         }
     }
 }

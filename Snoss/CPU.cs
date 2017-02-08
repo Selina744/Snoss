@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ namespace Snoss
         Ram ram = new Ram();
 
         private string instructionWords = null;
+
+        private List<int> processIds;
 
         public CPU()
         {
@@ -48,6 +51,7 @@ namespace Snoss
             pcbStart = pcbMetaDataStart + pcbMetaDataSize;
             //start program at instruction counter
             RunProgram(i);
+            
         }
         bool run = true;
         public void RunProgram(bool i)
@@ -56,14 +60,20 @@ namespace Snoss
             run = true;
             while (run)
             {
-                byte[] instruction = ram.GetMemoryAtIndex(instructionStart, instructionPointer, 4);
-                instructionPointer+=4;
+
                 //Console.WriteLine("Instruction pointer set to: {0}", instructionPointer);
                 //if (i)
                 //{
                 //    Console.WriteLine("State of registers before instruction: ");
                 //    PrintRegisters();
                 //}
+
+                if (TimeToSwitch())
+                {
+                    SwitchProgram();
+                }
+                byte[] instruction = ram.GetMemoryAtIndex(instructionStart, instructionPointer, 4);
+                instructionPointer += 4;
                 ExecuteInstruction(instruction, i);
                 
                 if (i)
@@ -73,6 +83,17 @@ namespace Snoss
                 }
             }
 
+        }
+
+        private void SwitchProgram()
+        {
+            throw new NotImplementedException();
+        }
+
+        private int lastTime = 0;
+        private bool TimeToSwitch()
+        {
+            //int newTime = DateTime.
         }
 
         public void PrintRegisters()

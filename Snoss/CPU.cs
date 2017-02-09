@@ -16,6 +16,8 @@ namespace Snoss
 
         //constants
         short pcbMetaDataSize = 20;
+        private short ramMetaDataSize = 12;
+        private short processSize = 100;
         private int pcbSize = 500;
 
         Ram ram = new Ram();

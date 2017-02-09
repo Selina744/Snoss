@@ -16,7 +16,7 @@ namespace Snoss
         private bool theI;
 
         //constants
-        short pcbMetaDataSize = 20;
+        private short pcbMetaDataSize = 20;
         private short ramMetaDataSize = 12;
         private short processSize = 100;
         private int pcbSize = 500;
@@ -35,6 +35,7 @@ namespace Snoss
 
         public CPU()
         {
+            processIds = new LinkedList<int>();
             for (int i = 0; i < registers.Length; i++)
             {
                 registers[i] = new byte[2];
@@ -51,7 +52,7 @@ namespace Snoss
                 nextProcessId = processIds.Last.Value + 1;
             }
             //fill out pcb header, pcb and instructions for process
-            int pcbMetaDataStart = nextProcessId * 1000;
+            int pcbMetaDataStart = GetStartOfProccess(nextProcessId);
             //save instruction pointer to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(0));
             //save instructions after pcb
@@ -76,22 +77,25 @@ namespace Snoss
                 //    Console.WriteLine("State of registers before instruction: ");
                 //    PrintRegisters();
                 //}
+                if (processIds.Count > 0)
+                {
+                    if (TimeToSwitch())
+                    {
+                        SwitchProgram();
+                    }
+                    int instructionPointer = ram.GetInstructionPointer();
+                    byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
+                    instructionPointer += 4;
+                    ram.SetInstructionPointer(instructionPointer);
+                    ExecuteInstruction(instruction, theI);
 
-                if (TimeToSwitch())
-                {
-                    SwitchProgram();
+                    if (theI)
+                    {
+                        Console.WriteLine("State of registers after instruction: ");
+                        PrintRegisters();
+                    }
                 }
-                int instructionPointer = ram.GetInstructionPointer();
-                byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
-                instructionPointer += 4;
-                ram.SetInstructionPointer(instructionPointer);
-                ExecuteInstruction(instruction, theI);
-                
-                if (theI)
-                {
-                    Console.WriteLine("State of registers after instruction: ");
-                    PrintRegisters();
-                }
+
             }
 
         }
@@ -123,9 +127,14 @@ namespace Snoss
             LoadProcess();
         }
 
+        private int GetStartOfProccess(int processId)
+        {
+            return processId * 1000 + ramMetaDataSize;
+        }
+
         private void SetProcessInformation()
         {
-            int pcbHeaderStart = currentProcessNode.Value*1000;
+            int pcbHeaderStart = GetStartOfProccess(currentProcessNode.Value);
             ram.SetPcbHeaderStart(pcbHeaderStart);
             ram.SetInstructionStart(pcbHeaderStart + pcbMetaDataSize + pcbSize);
             //get instruction size

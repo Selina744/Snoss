@@ -9,8 +9,6 @@ namespace Snoss
 {
     class Logger
     {
-
-
         //Create a "logging level" for your OS.Log OS output to a file (or the console - your choice).  
         //If the logging level is set high enough log "kernel" level process management info about which PID is executing and what instruction is being executed.
         //Also, log when your OS decides to time slice and switch which process is in the CPU.
@@ -23,14 +21,15 @@ namespace Snoss
             Level = level;
         }
 
-        public void SetWriter(String outputName)
+        public void SetWriter(string outputName)
         {
             outputFile = new StreamWriter(@"./ " + outputName);
         }
 
-        public void Log(String loggerData)
+        public void Log(string loggerData, LoggerLevels level)
         {
-            outputFile.Write(loggerData);
+            if(level <= Level)
+                outputFile.Write(loggerData);
         }
 
 

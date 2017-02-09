@@ -11,17 +11,24 @@ namespace Snoss
 {
     class CPU
     {
+        //max size of program/instruction is 1000 - 520 = 480 or 120 instructions
         private byte[][] registers = new byte[6][];
         private int pcbSize = 500;
         private int instructionPointer;
         private int instructionStart;
         private int pcbStart;
+        private int _pcbMetaDataStart;
+
+        //constants
+        short pcbMetaDataSize = 20;
+
         Ram ram = new Ram();
         Timer timer = new Timer(500);
 
         private string instructionWords = null;
 
-        private List<int> processIds;
+        private LinkedList<int> processIds;
+        private LinkedListNode<int> currentProcessNode;
 
         public CPU()
         {
@@ -33,26 +40,23 @@ namespace Snoss
 
         public void LoadProgram(string fileName, bool i)
         {
-            //save instructions into memory
-            byte[] instructionBytes = File.ReadAllBytes(fileName);
-            ram.WriteToMemoryAtIndex(0, 0, instructionBytes);
+            int nextProcessId = 0;
+            if (processIds.Count > 0)
+            {
+                nextProcessId = processIds.Last.Value + 1;
+            }
             //create pcb
-            int pcbMetaDataStart = instructionBytes.Length;
-            //set pcb metadata size
-            short pcbMetaDataSize = 8;
-            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(pcbMetaDataSize));
-            //set pcb size
-            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 2, BitConverter.GetBytes(pcbSize));
-            //set instruction start
-            instructionStart = 0;
-            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionStart));
+            int pcbMetaDataStart = nextProcessId * 1000;
             //set instruction pointer
-            instructionPointer = 0;
-            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 6, BitConverter.GetBytes(instructionPointer));
+            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(0));
             //other info? Where do we store the start of the pcb data?
             pcbStart = pcbMetaDataStart + pcbMetaDataSize;
-            //start program at instruction counter
-            RunProgram(i);
+            //save instructions into memory
+            byte[] instructionBytes = File.ReadAllBytes(fileName);
+            instructionStart = pcbStart + pcbSize;
+            ram.WriteToMemoryAtIndex(instructionStart, 0, instructionBytes);
+            //save instruction size
+            ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
             
         }
         bool run = true;
@@ -87,9 +91,71 @@ namespace Snoss
 
         }
 
+        private void LoadProcess()
+        {
+            SetNextProcess();
+            SetProcessInformation();
+            SetRegisters();
+            SetInstructionPointer();
+        }
+
+        private void SaveProcess()
+        {
+            SaveRegisters();
+            SaveInstructionPointer();
+        }
+
+        private void SaveInstructionPointer()
+        {
+            ram.WriteToMemoryAtIndex(_pcbMetaDataStart, 0, BitConverter.GetBytes(instructionPointer));
+        }
+
+        private void SaveRegisters()
+        {
+            for (int i = 0; i < registers.Length; i++)
+            {
+                ram.WriteToMemoryAtIndex(_pcbMetaDataStart, i + 8, registers[i]);
+            }
+        }
+
         private void SwitchProgram()
         {
-            throw new NotImplementedException();
+            SaveProcess();
+            LoadProcess();
+        }
+
+        private void SetInstructionPointer()
+        {
+            instructionPointer = Convert.ToInt32(ram.GetMemoryAtIndex(_pcbMetaDataStart, 0, 4));
+        }
+
+        private void SetProcessInformation()
+        {
+            _pcbMetaDataStart = currentProcessNode.Value * 1000;
+            pcbStart = _pcbMetaDataStart + pcbMetaDataSize;
+            instructionStart = pcbStart + pcbSize;
+            //get instruction size
+            //ram.GetMemoryAtIndex(_pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
+        }
+
+        private void SetRegisters()
+        {
+            for (int i = 0; i < registers.Length; i++)
+            {
+                registers[i] = ram.GetMemoryAtIndex(_pcbMetaDataStart, i + 8, 2);
+            }
+        }
+
+        private void SetNextProcess()
+        {
+            if (currentProcessNode == processIds.Last)
+            {
+                currentProcessNode = processIds.First;
+            }
+            else
+            {
+                currentProcessNode = currentProcessNode.Next;
+            }
         }
 
         private int lastTime = 0;

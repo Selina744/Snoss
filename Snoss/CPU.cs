@@ -83,7 +83,7 @@ namespace Snoss
                 byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
                 instructionPointer += 4;
                 ram.SetInstructionPointer(instructionPointer);
-                ExecuteInstruction(instruction, i);
+                ExecuteInstruction(instruction, theI);
                 
                 if (theI)
                 {

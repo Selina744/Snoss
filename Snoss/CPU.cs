@@ -62,6 +62,13 @@ namespace Snoss
             //save instruction size to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
             theI = i;
+            LinkedListNode<int> newProccessNode = new LinkedListNode<int>(nextProcessId);
+            if (processIds.Count == 0)
+            {
+                currentProcessNode = newProccessNode;
+                SetProcessInformation();
+            }
+            processIds.AddLast(newProccessNode);
         }
         bool run = true;
         public void RunProgram()
@@ -167,13 +174,23 @@ namespace Snoss
         {
             //time to milliseconds : 5
             bool switchProcess = false;
-            DateTime newTime = DateTime.Now;
-            var switchTime = newTime.AddMilliseconds(5);
-
-            if (newTime == switchTime)
+            if (processIds.Contains(ram.GetCurrentProcessId()))
+            {
+                if (processIds.Count > 1)
                 {
-                    switchProcess = true;
+                    DateTime newTime = DateTime.Now;
+                    var switchTime = newTime.AddMilliseconds(500);
+
+                    if (newTime > switchTime)
+                    {
+                        switchProcess = true;
+                    }
                 }
+            }
+            else
+            {
+                switchProcess = true;
+            }
             //int newTime = DateTime.
             return switchProcess;
         }
@@ -208,7 +225,6 @@ namespace Snoss
                 //remove the process id from the list
                 processIds.Remove(id);
                 //scape off the process data from the RAM 
-
             }
         }
         public void PrintRegisters()
@@ -427,7 +443,7 @@ namespace Snoss
                     {
                         Console.WriteLine("Executing Exit");
                     }
-                    run = false;
+                    processIds.Remove(ram.GetCurrentProcessId());
                     break;
             }
         }
@@ -604,8 +620,6 @@ namespace Snoss
                 if(optionalInfo != null)
                     stream.WriteLine("Optional info: {0}", optionalInfo);
             }
-            run = false;
-
         }
 
         public void SetRegister(int index, byte[] bytes)

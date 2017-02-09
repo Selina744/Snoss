@@ -26,6 +26,8 @@ namespace Snoss
         public void KillProcess(string processId)
         {
             Console.WriteLine("Killing process " + processId + "...");
+            var id = Int32.Parse(processId);
+            cpu.removeProcessFromList(id);
             //Immediately stop the process associated with process_id and unload it from RAM
 
         }
@@ -44,6 +46,7 @@ namespace Snoss
         {
             //Displays the Pid, file which the process is executing, the register values and the instruction pointer 
             //for EACH of the current processes.
+            cpu.retrieveProcessInfo();
         }
 
         public void Exit()

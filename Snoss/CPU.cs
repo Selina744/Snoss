@@ -100,15 +100,10 @@ namespace Snoss
             DateTime newTime = DateTime.Now;
             var switchTime = newTime.AddMilliseconds(5);
 
-            do
-            {
-                if (newTime != switchTime)
+            if (newTime == switchTime)
                 {
                     switchProcess = true;
                 }
-                newTime = DateTime.Now;
-            } while (!switchProcess);
-
             //int newTime = DateTime.
             return switchProcess;
         }

@@ -13,21 +13,21 @@ namespace Snoss
     {
         //max size of program/instruction is 1000 - 520 = 480 or 120 instructions
         private byte[][] registers = new byte[6][];
-        private int pcbSize = 500;
-        private int instructionPointer;
-        private int instructionStart;
-        private int pcbStart;
-        private int _pcbMetaDataStart;
         private bool theI;
 
         //constants
         short pcbMetaDataSize = 20;
+        private int pcbSize = 500;
 
         Ram ram = new Ram();
         System.Timers.Timer timer = new System.Timers.Timer(500);
 
         private string instructionWords = null;
 
+        //Change this to use the ram as well?
+        //Store all process ids in 8 set locations. (8 processes max currently)
+        //when new process is added loop thru until empty location is found and put processId there.
+        //When next process is selected, start at current processId and loop until location is not empty.
         private LinkedList<int> processIds;
         private LinkedListNode<int> currentProcessNode;
 
@@ -48,17 +48,15 @@ namespace Snoss
             {
                 nextProcessId = processIds.Last.Value + 1;
             }
-            //create pcb
+            //fill out pcb header, pcb and instructions for process
             int pcbMetaDataStart = nextProcessId * 1000;
-            //set instruction pointer
+            //save instruction pointer to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(0));
-            //other info? Where do we store the start of the pcb data?
-            pcbStart = pcbMetaDataStart + pcbMetaDataSize;
-            //save instructions into memory
+            //save instructions after pcb
             byte[] instructionBytes = File.ReadAllBytes(fileName);
-            instructionStart = pcbStart + pcbSize;
+            int instructionStart = pcbMetaDataStart + pcbMetaDataSize + pcbSize;
             ram.WriteToMemoryAtIndex(instructionStart, 0, instructionBytes);
-            //save instruction size
+            //save instruction size to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
             theI = i;
         }
@@ -81,9 +79,11 @@ namespace Snoss
                 {
                     SwitchProgram();
                 }
-                byte[] instruction = ram.GetMemoryAtIndex(instructionStart, instructionPointer, 4);
+                int instructionPointer = ram.GetInstructionPointer();
+                byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
                 instructionPointer += 4;
-                ExecuteInstruction(instruction, theI);
+                ram.SetInstructionPointer(instructionPointer);
+                ExecuteInstruction(instruction, i);
                 
                 if (theI)
                 {
@@ -99,25 +99,19 @@ namespace Snoss
             SetNextProcess();
             SetProcessInformation();
             SetRegisters();
-            SetInstructionPointer();
         }
 
         private void SaveProcess()
         {
             SaveRegisters();
-            SaveInstructionPointer();
-        }
-
-        private void SaveInstructionPointer()
-        {
-            ram.WriteToMemoryAtIndex(_pcbMetaDataStart, 0, BitConverter.GetBytes(instructionPointer));
         }
 
         private void SaveRegisters()
         {
+            int pcbMetaDataStart = ram.GetPcbHeaderStart();
             for (int i = 0; i < registers.Length; i++)
             {
-                ram.WriteToMemoryAtIndex(_pcbMetaDataStart, i + 8, registers[i]);
+                ram.WriteToMemoryAtIndex(pcbMetaDataStart, i + 8, registers[i]);
             }
         }
 
@@ -127,25 +121,21 @@ namespace Snoss
             LoadProcess();
         }
 
-        private void SetInstructionPointer()
-        {
-            instructionPointer = Convert.ToInt32(ram.GetMemoryAtIndex(_pcbMetaDataStart, 0, 4));
-        }
-
         private void SetProcessInformation()
         {
-            _pcbMetaDataStart = currentProcessNode.Value * 1000;
-            pcbStart = _pcbMetaDataStart + pcbMetaDataSize;
-            instructionStart = pcbStart + pcbSize;
+            int pcbHeaderStart = currentProcessNode.Value*1000;
+            ram.SetPcbHeaderStart(pcbHeaderStart);
+            ram.SetInstructionStart(pcbHeaderStart + pcbMetaDataSize + pcbSize);
             //get instruction size
             //ram.GetMemoryAtIndex(_pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
         }
 
         private void SetRegisters()
         {
+            int pcbHeaderStart = ram.GetPcbHeaderStart();
             for (int i = 0; i < registers.Length; i++)
             {
-                registers[i] = ram.GetMemoryAtIndex(_pcbMetaDataStart, i + 8, 2);
+                registers[i] = ram.GetMemoryAtIndex(pcbHeaderStart, i + 8, 2);
             }
         }
 
@@ -169,15 +159,10 @@ namespace Snoss
             DateTime newTime = DateTime.Now;
             var switchTime = newTime.AddMilliseconds(5);
 
-            do
-            {
-                if (newTime != switchTime)
+            if (newTime == switchTime)
                 {
                     switchProcess = true;
                 }
-                newTime = DateTime.Now;
-            } while (!switchProcess);
-
             //int newTime = DateTime.
             return switchProcess;
         }
@@ -189,14 +174,17 @@ namespace Snoss
         {
             //for each process in process id:
             //display 
-            foreach (var process in  processIds)
+            if(processIds.Count != 0)
             {
-                Console.WriteLine("Process ID : " + process);
-                Console.WriteLine("Process State : ");
-                Console.WriteLine("Process File Name : "  );
-                Console.WriteLine("Process instruction pointer : " );
-                Console.WriteLine("Register Values : ");
+                foreach (var process in  processIds)
+                {
+                    Console.WriteLine("Process ID : " + process);
+                    Console.WriteLine("Process State : ");
+                    Console.WriteLine("Process File Name : "  );
+                    Console.WriteLine("Process instruction pointer : " );
+                    Console.WriteLine("Register Values : ");
 
+                }
             }
         }
         
@@ -206,7 +194,10 @@ namespace Snoss
         {  //if the process contains the id
             if(processIds.Contains(id))
             {
+                //remove the process id from the list
                 processIds.Remove(id);
+                //scape off the process data from the RAM 
+
             }
         }
         public void PrintRegisters()
@@ -430,9 +421,14 @@ namespace Snoss
             }
         }
 
+        public int GetPcbStart()
+        {
+            return ram.GetPcbHeaderStart() + pcbMetaDataSize;
+        }
+
         public void Load(int regIndex, int memoryAddress)
         {
-            SetRegister(regIndex, ram.GetMemoryAtIndex(pcbStart, memoryAddress, 2));
+            SetRegister(regIndex, ram.GetMemoryAtIndex(GetPcbStart(), memoryAddress, 2));
             //Console.WriteLine("Loaded value in memory address {0}, into reg {1}", memoryAddress, regIndex);
         }
 
@@ -444,7 +440,7 @@ namespace Snoss
 
         public void Store(int memoryAddress, int regIndex)
         {
-            WriteToPcb(pcbStart, memoryAddress, registers[regIndex]);
+            WriteToPcb(GetPcbStart(), memoryAddress, registers[regIndex]);
         }
 
         public void Add(int regIndexNum1, int regIndexNum2, int regIndexAnswer)
@@ -501,7 +497,7 @@ namespace Snoss
 
         public void GoTo(int memoryAddress)
         {
-            instructionPointer = memoryAddress;
+            ram.SetInstructionPointer(memoryAddress);
         }
 
         public void GoToIf(int regIndex, int memoryAddress)
@@ -509,14 +505,14 @@ namespace Snoss
             //if byte at register = 0x01 then set instruction pointer to memory address
             if (BitConverter.ToBoolean(registers[regIndex], 0))
             {
-                instructionPointer = memoryAddress;
+                ram.SetInstructionPointer(memoryAddress);
             }
         }
 
         public void Print(int memoryAddress)
         {
             //get value at memory address and print to console.
-            byte[] valueBytes = ReadFromPcb(pcbStart, memoryAddress);
+            byte[] valueBytes = ReadFromPcb(GetPcbStart(), memoryAddress);
             short value = BitConverter.ToInt16(valueBytes, 0);
             Console.WriteLine(value);
         }
@@ -531,7 +527,7 @@ namespace Snoss
                 string input = Console.ReadLine();       
                 isNumeric = short.TryParse(input, out n);
             } while (!isNumeric);
-            WriteToPcb(pcbStart, memoryAddress, BitConverter.GetBytes(n));
+            WriteToPcb(GetPcbStart(), memoryAddress, BitConverter.GetBytes(n));
         }
 
         public int GetMemoryAddress(byte[] instructions, int startLocation)
@@ -545,6 +541,7 @@ namespace Snoss
 
         public void WriteToPcb(int startLocation, int index, byte[] data)
         {
+            int pcbStart = GetPcbStart();
             int rsl = startLocation + index;
             if (rsl >= pcbStart && rsl + data.Length <= pcbStart + pcbSize)
             {
@@ -559,6 +556,7 @@ namespace Snoss
 
         public byte[] ReadFromPcb(int startLocation, int index)
         {
+            int pcbStart = GetPcbStart();
             int rsl = startLocation + index;
             byte[] bytes = new byte[2];
             if (rsl >= pcbStart && rsl + 2 <= pcbStart + pcbSize)
@@ -590,7 +588,7 @@ namespace Snoss
                     stream.WriteLine("Register {0} has value {1}", i, value);
                 }
                 stream.WriteLine("Instruction: {0}", instructionWords);
-                stream.WriteLine("Instruction Pointer: {0}", instructionPointer);
+                stream.WriteLine("Instruction Pointer: {0}", ram.GetInstructionPointer());
 
                 if(optionalInfo != null)
                     stream.WriteLine("Optional info: {0}", optionalInfo);

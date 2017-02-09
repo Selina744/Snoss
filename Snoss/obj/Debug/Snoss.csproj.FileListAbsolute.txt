@@ -4,12 +4,3 @@ D:\Homework\Projects\Snoss\Snoss\bin\Debug\Snoss.pdb
 D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.csprojResolveAssemblyReference.cache
 D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.exe
 D:\Homework\Projects\Snoss\Snoss\obj\Debug\Snoss.pdb
-C:\Users\Alexander Huertas\Desktop\SnossRepo\Snoss\Snoss\bin\Debug\Snoss.exe.config
-C:\Users\Alexander Huertas\Desktop\SnossRepo\Snoss\Snoss\obj\Debug\Snoss.exe
-C:\Users\Alexander Huertas\Desktop\SnossRepo\Snoss\Snoss\obj\Debug\Snoss.pdb
-D:\projects2\gitSNOSS\Snoss\Snoss\bin\Debug\Snoss.exe.config
-D:\projects2\gitSNOSS\Snoss\Snoss\obj\Debug\Snoss.exe
-D:\projects2\gitSNOSS\Snoss\Snoss\obj\Debug\Snoss.pdb
-D:\projects2\gitSNOSS\Snoss\Snoss\bin\Debug\Snoss.exe
-D:\projects2\gitSNOSS\Snoss\Snoss\bin\Debug\Snoss.pdb
-D:\projects2\gitSNOSS\Snoss\Snoss\obj\Debug\Snoss.csprojResolveAssemblyReference.cache

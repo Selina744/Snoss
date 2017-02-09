@@ -154,6 +154,8 @@ namespace Snoss
         }
 
         private int lastTime = 0;
+
+        #region Alex's method job
         private bool TimeToSwitch()
         {
             //time to milliseconds : 5
@@ -169,9 +171,6 @@ namespace Snoss
             return switchProcess;
         }
 
-        /// <summary>
-        ///  Get the process information 
-        /// </summary>
         public void retrieveProcessInfo()
         {
             //for each process in process id:
@@ -180,18 +179,22 @@ namespace Snoss
             {
                 foreach (var process in  processIds)
                 {
-                    Console.WriteLine("Process ID : " + process);
-                    Console.WriteLine("Process State : ");
-                    Console.WriteLine("Process File Name : "  );
-                    Console.WriteLine("Process instruction pointer : " );
-                    Console.WriteLine("Register Values : ");
+                    //So for process id 1, 2, etc
+                    int dataStart = ramMetaDataSize + (process * processSize);
+                    int dataEnd = dataStart + 20;
+                    for (int i = dataStart; i < dataEnd; i++)
+                    {
 
+                    }
                 }
+            }
+            else
+            {
+                Console.WriteLine("There currently is no running process to display");
             }
         }
         
-        /// kill process or remove all data of process with the id from the list of ids
-        /// 
+       
         public void removeProcessFromList(int id)
         {  //if the process contains the id
             if(processIds.Contains(id))
@@ -202,6 +205,8 @@ namespace Snoss
 
             }
         }
+        #endregion
+
         public void PrintRegisters()
         {
             for (int i = 0; i < registers.Length; i++)

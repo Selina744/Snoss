@@ -1,1 +1,24 @@
-﻿
+﻿This page describes the different bytes and section in the ram
+ProcessSetSize = 1000
+
+Main Ram Meta Data
+0-4: Current Process Header Start
+4-8: Current Process Instruction Start
+8-12: Current Process Id
+
+Processes start here
+Process 0 - Start is MainRamMetaDataSize + (ProcessId (0) * ProcessSetSize)
+0-4: Instruction Pointer
+4-8: Instruction Size
+8-20: Saved Registers
+20-520: PCB
+520-1000: Instructions
+
+Process 1 - Start is MainRamMetaDataSize + (ProcessId (1) * ProcessSetSize)
+0-4: Instruction Pointer
+4-8: Instruction Size
+8-20: Saved Registers
+20-520: PCB
+520-1000: Instructions
+
+etc

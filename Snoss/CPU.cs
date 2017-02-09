@@ -136,7 +136,7 @@ namespace Snoss
 
         private int GetStartOfProccess(int processId)
         {
-            return processId * 1000 + ramMetaDataSize;
+            return processId * processSize + ramMetaDataSize;
         }
 
         private void SetProcessInformation()
@@ -169,19 +169,18 @@ namespace Snoss
             }
         }
 
-        private int lastTime = 0;
+        DateTime switchTime = DateTime.Now.AddMilliseconds(500);
         private bool TimeToSwitch()
         {
+            DateTime now = DateTime.Now;
+
             //time to milliseconds : 5
             bool switchProcess = false;
             if (processIds.Contains(ram.GetCurrentProcessId()))
             {
                 if (processIds.Count > 1)
                 {
-                    DateTime newTime = DateTime.Now;
-                    var switchTime = newTime.AddMilliseconds(500);
-
-                    if (newTime > switchTime)
+                    if (now > switchTime)
                     {
                         switchProcess = true;
                     }
@@ -191,6 +190,7 @@ namespace Snoss
             {
                 switchProcess = true;
             }
+            switchTime = now.AddMilliseconds(500);
             //int newTime = DateTime.
             return switchProcess;
         }

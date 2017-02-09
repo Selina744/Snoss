@@ -155,15 +155,10 @@ namespace Snoss
             DateTime newTime = DateTime.Now;
             var switchTime = newTime.AddMilliseconds(5);
 
-            do
-            {
-                if (newTime != switchTime)
+            if (newTime == switchTime)
                 {
                     switchProcess = true;
                 }
-                newTime = DateTime.Now;
-            } while (!switchProcess);
-
             //int newTime = DateTime.
             return switchProcess;
         }
@@ -175,14 +170,17 @@ namespace Snoss
         {
             //for each process in process id:
             //display 
-            foreach (var process in  processIds)
+            if(processIds.Count != 0)
             {
-                Console.WriteLine("Process ID : " + process);
-                Console.WriteLine("Process State : ");
-                Console.WriteLine("Process File Name : "  );
-                Console.WriteLine("Process instruction pointer : " );
-                Console.WriteLine("Register Values : ");
+                foreach (var process in  processIds)
+                {
+                    Console.WriteLine("Process ID : " + process);
+                    Console.WriteLine("Process State : ");
+                    Console.WriteLine("Process File Name : "  );
+                    Console.WriteLine("Process instruction pointer : " );
+                    Console.WriteLine("Register Values : ");
 
+                }
             }
         }
         
@@ -192,7 +190,10 @@ namespace Snoss
         {  //if the process contains the id
             if(processIds.Contains(id))
             {
+                //remove the process id from the list
                 processIds.Remove(id);
+                //scape off the process data from the RAM 
+
             }
         }
         public void PrintRegisters()

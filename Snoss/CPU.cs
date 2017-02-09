@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
+using System.Threading;
 
 namespace Snoss
 {
@@ -18,12 +18,13 @@ namespace Snoss
         private int instructionStart;
         private int pcbStart;
         private int _pcbMetaDataStart;
+        private bool theI;
 
         //constants
         short pcbMetaDataSize = 20;
 
         Ram ram = new Ram();
-        Timer timer = new Timer(500);
+        System.Timers.Timer timer = new System.Timers.Timer(500);
 
         private string instructionWords = null;
 
@@ -36,6 +37,8 @@ namespace Snoss
             {
                 registers[i] = new byte[2];
             }
+            Thread th = new Thread(() => RunProgram());
+            th.Start();
         }
 
         public void LoadProgram(string fileName, bool i)
@@ -57,10 +60,10 @@ namespace Snoss
             ram.WriteToMemoryAtIndex(instructionStart, 0, instructionBytes);
             //save instruction size
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
-            
+            theI = i;
         }
         bool run = true;
-        public void RunProgram(bool i)
+        public void RunProgram()
         {
             //loop to execute instruction lines
             run = true;
@@ -80,9 +83,9 @@ namespace Snoss
                 }
                 byte[] instruction = ram.GetMemoryAtIndex(instructionStart, instructionPointer, 4);
                 instructionPointer += 4;
-                ExecuteInstruction(instruction, i);
+                ExecuteInstruction(instruction, theI);
                 
-                if (i)
+                if (theI)
                 {
                     Console.WriteLine("State of registers after instruction: ");
                     PrintRegisters();

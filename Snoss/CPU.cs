@@ -16,7 +16,7 @@ namespace Snoss
         private bool theI;
 
         //constants
-        short pcbMetaDataSize = 20;
+        private short pcbMetaDataSize = 20;
         private short ramMetaDataSize = 12;
         private short processSize = 100;
         private int pcbSize = 500;
@@ -35,6 +35,7 @@ namespace Snoss
 
         public CPU()
         {
+            processIds = new LinkedList<int>();
             for (int i = 0; i < registers.Length; i++)
             {
                 registers[i] = new byte[2];
@@ -51,7 +52,7 @@ namespace Snoss
                 nextProcessId = processIds.Last.Value + 1;
             }
             //fill out pcb header, pcb and instructions for process
-            int pcbMetaDataStart = nextProcessId * 1000;
+            int pcbMetaDataStart = GetStartOfProccess(nextProcessId);
             //save instruction pointer to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(0));
             //save instructions after pcb
@@ -61,6 +62,13 @@ namespace Snoss
             //save instruction size to header
             ram.WriteToMemoryAtIndex(pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
             theI = i;
+            LinkedListNode<int> newProccessNode = new LinkedListNode<int>(nextProcessId);
+            if (processIds.Count == 0)
+            {
+                currentProcessNode = newProccessNode;
+                SetProcessInformation();
+            }
+            processIds.AddLast(newProccessNode);
         }
         bool run = true;
         public void RunProgram()
@@ -76,22 +84,25 @@ namespace Snoss
                 //    Console.WriteLine("State of registers before instruction: ");
                 //    PrintRegisters();
                 //}
+                if (processIds.Count > 0)
+                {
+                    if (TimeToSwitch())
+                    {
+                        SwitchProgram();
+                    }
+                    int instructionPointer = ram.GetInstructionPointer();
+                    byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
+                    instructionPointer += 4;
+                    ram.SetInstructionPointer(instructionPointer);
+                    ExecuteInstruction(instruction, theI);
 
-                if (TimeToSwitch())
-                {
-                    SwitchProgram();
+                    if (theI)
+                    {
+                        Console.WriteLine("State of registers after instruction: ");
+                        PrintRegisters();
+                    }
                 }
-                int instructionPointer = ram.GetInstructionPointer();
-                byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
-                instructionPointer += 4;
-                ram.SetInstructionPointer(instructionPointer);
-                ExecuteInstruction(instruction, theI);
-                
-                if (theI)
-                {
-                    Console.WriteLine("State of registers after instruction: ");
-                    PrintRegisters();
-                }
+
             }
 
         }
@@ -123,9 +134,14 @@ namespace Snoss
             LoadProcess();
         }
 
+        private int GetStartOfProccess(int processId)
+        {
+            return processId * processSize + ramMetaDataSize;
+        }
+
         private void SetProcessInformation()
         {
-            int pcbHeaderStart = currentProcessNode.Value*1000;
+            int pcbHeaderStart = GetStartOfProccess(currentProcessNode.Value);
             ram.SetPcbHeaderStart(pcbHeaderStart);
             ram.SetInstructionStart(pcbHeaderStart + pcbMetaDataSize + pcbSize);
             //get instruction size
@@ -153,20 +169,34 @@ namespace Snoss
             }
         }
 
+<<<<<<< HEAD
         private int lastTime = 0;
 
         #region Alex's method job
+=======
+        DateTime switchTime = DateTime.Now.AddMilliseconds(500);
+>>>>>>> 6fe92a0c960609cb2ce79d0d023c7a3f9de20844
         private bool TimeToSwitch()
         {
+            DateTime now = DateTime.Now;
+
             //time to milliseconds : 5
             bool switchProcess = false;
-            DateTime newTime = DateTime.Now;
-            var switchTime = newTime.AddMilliseconds(5);
-
-            if (newTime == switchTime)
+            if (processIds.Contains(ram.GetCurrentProcessId()))
+            {
+                if (processIds.Count > 1)
                 {
-                    switchProcess = true;
+                    if (now > switchTime)
+                    {
+                        switchProcess = true;
+                    }
                 }
+            }
+            else
+            {
+                switchProcess = true;
+            }
+            switchTime = now.AddMilliseconds(500);
             //int newTime = DateTime.
             return switchProcess;
         }
@@ -202,7 +232,6 @@ namespace Snoss
                 //remove the process id from the list
                 processIds.Remove(id);
                 //scape off the process data from the RAM 
-
             }
         }
         #endregion
@@ -423,7 +452,7 @@ namespace Snoss
                     {
                         Console.WriteLine("Executing Exit");
                     }
-                    run = false;
+                    processIds.Remove(ram.GetCurrentProcessId());
                     break;
             }
         }
@@ -600,8 +629,6 @@ namespace Snoss
                 if(optionalInfo != null)
                     stream.WriteLine("Optional info: {0}", optionalInfo);
             }
-            run = false;
-
         }
 
         public void SetRegister(int index, byte[] bytes)

@@ -18,7 +18,7 @@ namespace Snoss
         //constants
         private short pcbMetaDataSize = 20;
         private short ramMetaDataSize = 12;
-        private short processSize = 100;
+        private short processSize = 1000;
         private int pcbSize = 500;
 
         Ram ram = new Ram();
@@ -90,10 +90,11 @@ namespace Snoss
                     {
                         SwitchProgram();
                     }
-                    int instructionPointer = ram.GetInstructionPointer();
+                    int instructionPointer = ram.GetInstructionPointer(GetStartOfProccess(currentProcessNode.Value));
+                      //  Console.WriteLine("instruction pointer: " + instructionPointer);
                     byte[] instruction = ram.GetMemoryAtIndex(ram.GetInstructionStart(), instructionPointer, 4);
                     instructionPointer += 4;
-                    ram.SetInstructionPointer(instructionPointer);
+                    ram.SetInstructionPointer(instructionPointer, GetStartOfProccess(currentProcessNode.Value));
                     ExecuteInstruction(instruction, theI);
 
                     if (theI)
@@ -122,7 +123,7 @@ namespace Snoss
         private void SaveRegisters()
         {
             int pcbMetaDataStart = ram.GetPcbHeaderStart();
-            for (int i = 0; i < registers.Length; i++)
+            for (int i = 0; i < registers.Length; i+=2)
             {
                 ram.WriteToMemoryAtIndex(pcbMetaDataStart, i + 8, registers[i]);
             }
@@ -151,7 +152,7 @@ namespace Snoss
         private void SetRegisters()
         {
             int pcbHeaderStart = ram.GetPcbHeaderStart();
-            for (int i = 0; i < registers.Length; i++)
+            for (int i = 0; i < registers.Length; i+=2)
             {
                 registers[i] = ram.GetMemoryAtIndex(pcbHeaderStart, i + 8, 2);
             }
@@ -183,6 +184,7 @@ namespace Snoss
                     if (now > switchTime)
                     {
                         switchProcess = true;
+                        switchTime = now.AddMilliseconds(500);
                     }
                 }
             }
@@ -190,7 +192,8 @@ namespace Snoss
             {
                 switchProcess = true;
             }
-            switchTime = now.AddMilliseconds(500);
+            //if(switchProcess)
+             //   Console.WriteLine("Switcher: time: " + switchTime + " did switch:" + switchProcess);
             //int newTime = DateTime.
             return switchProcess;
         }
@@ -524,7 +527,7 @@ namespace Snoss
 
         public void GoTo(int memoryAddress)
         {
-            ram.SetInstructionPointer(memoryAddress);
+            ram.SetInstructionPointer(memoryAddress, GetStartOfProccess(currentProcessNode.Value));
         }
 
         public void GoToIf(int regIndex, int memoryAddress)
@@ -532,7 +535,7 @@ namespace Snoss
             //if byte at register = 0x01 then set instruction pointer to memory address
             if (BitConverter.ToBoolean(registers[regIndex], 0))
             {
-                ram.SetInstructionPointer(memoryAddress);
+                ram.SetInstructionPointer(memoryAddress, GetStartOfProccess(currentProcessNode.Value));
             }
         }
 
@@ -615,7 +618,7 @@ namespace Snoss
                     stream.WriteLine("Register {0} has value {1}", i, value);
                 }
                 stream.WriteLine("Instruction: {0}", instructionWords);
-                stream.WriteLine("Instruction Pointer: {0}", ram.GetInstructionPointer());
+                stream.WriteLine("Instruction Pointer: {0}", ram.GetInstructionPointer(GetStartOfProccess(currentProcessNode.Value)));
 
                 if(optionalInfo != null)
                     stream.WriteLine("Optional info: {0}", optionalInfo);

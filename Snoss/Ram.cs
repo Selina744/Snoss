@@ -4,7 +4,6 @@ namespace Snoss
 {
     class Ram
     {
-        private int instructionPointer;
         private int instructionStart;
         private int pcbHeaderStart;
         private int currentProcessId;
@@ -30,16 +29,17 @@ namespace Snoss
             }
         }
 
-        public void SetInstructionPointer(int instructionPointer)
+        public void SetInstructionPointer(int instructionPointer, int metaDataStart)
         {
-            this.instructionPointer = instructionPointer;
-            //WriteToMemoryAtIndex(pcbMetaDataStart, 0, BitConverter.GetBytes(instructionPointer));
+            //this.instructionPointer = instructionPointer;
+            WriteToMemoryAtIndex(metaDataStart, 0, BitConverter.GetBytes(instructionPointer));
         }
 
-        public int GetInstructionPointer()
+        public int GetInstructionPointer(int metaDataStart)
         {
-            return instructionPointer;
-            //return Convert.ToInt32(ram.GetMemoryAtIndex(_pcbMetaDataStart, 0, 4));
+            //return instructionPointer;
+            byte[] instructionBytes = GetMemoryAtIndex(metaDataStart, 0, 4);
+            return BitConverter.ToInt32(instructionBytes, 0);
         }
 
         public void SetInstructionStart(int instructionStart)

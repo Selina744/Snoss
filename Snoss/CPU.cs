@@ -22,6 +22,7 @@ namespace Snoss
         private int pcbSize = 500;
 
         Ram ram = new Ram();
+        Logger logger = new Logger(LoggerLevels.HIGH);
         System.Timers.Timer timer = new System.Timers.Timer(500);
 
         private string instructionWords = null;
@@ -42,6 +43,7 @@ namespace Snoss
             }
             Thread th = new Thread(() => RunProgram());
             th.Start();
+            logger.SetWriter("LogFile");
         }
 
         public void LoadProgram(string fileName, bool i)
@@ -88,6 +90,7 @@ namespace Snoss
                 {
                     if (TimeToSwitch())
                     {
+                        logger.Log("Process "+ram.GetCurrentProcessId()+"TimeSliced at :" + DateTime.Now,LoggerLevels.HIGH);
                         SwitchProgram();
                     }
                     int instructionPointer = ram.GetInstructionPointer(GetStartOfProccess(currentProcessNode.Value));
@@ -132,6 +135,7 @@ namespace Snoss
         private void SwitchProgram()
         {
             SaveProcess();
+
             LoadProcess();
         }
 
@@ -307,7 +311,7 @@ namespace Snoss
                     {
                         Dump();
                     }
-                    
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed LOAD INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "LOADC":
                     regIndex1 = Convert.ToInt32(instruction[1]);
@@ -325,6 +329,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed LOADC INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "STORE":
                     memoryAddress = GetMemoryAddress(instruction, 1);
@@ -343,6 +348,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed STORE INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "ADD":
                     regIndex1 = Convert.ToInt32(instruction[1]);
@@ -362,6 +368,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed ADD INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "SUB":
                     regIndex1 = Convert.ToInt32(instruction[1]);
@@ -381,6 +388,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed SUB INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "MUL":
                     regIndex1 = Convert.ToInt32(instruction[1]);
@@ -400,6 +408,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed MUL INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "DIV":
                     regIndex1 = Convert.ToInt32(instruction[1]);
@@ -412,6 +421,7 @@ namespace Snoss
                         Console.WriteLine(instructionWords);
                     }
                     Divide(regIndex2, regIndex3, regIndex1);
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed DIV INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "EQ":
                     //first is answer, next 2 are comparing nums
@@ -432,6 +442,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed EQ INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "GOTO":
                     memoryAddress = GetMemoryAddress(instruction, 1);
@@ -440,6 +451,7 @@ namespace Snoss
                         Console.WriteLine("Executing GoTo, memoryAddress: {0}", memoryAddress);
                     }
                     GoTo(memoryAddress);
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed GOTO INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "GOTOIF":
                     memoryAddress = GetMemoryAddress(instruction, 1);
@@ -461,6 +473,7 @@ namespace Snoss
                     {
                         Dump();
                     }
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed GOTOIF INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "CPRINT":
                     memoryAddress = GetMemoryAddress(instruction, 1);
@@ -471,6 +484,7 @@ namespace Snoss
                         Console.WriteLine(instructionWords);
                     }
                     Print(memoryAddress);
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed CPRINT INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "CREAD":
                     memoryAddress = BitConverter.ToInt16(instruction, 1);
@@ -480,6 +494,7 @@ namespace Snoss
                         Console.WriteLine(instructionWords);
                     }
                     Read(memoryAddress);
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed CREAD INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
                 case "EXIT":
                     if (i)
@@ -487,6 +502,7 @@ namespace Snoss
                         Console.WriteLine("Executing Exit");
                     }
                     processIds.Remove(ram.GetCurrentProcessId());
+                    logger.Log("Process " + ram.GetCurrentProcessId() + " executed EXIT INSTRUCTION ", LoggerLevels.LOWLEVEL);
                     break;
             }
         }

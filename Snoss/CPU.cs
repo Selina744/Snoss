@@ -142,9 +142,13 @@ namespace Snoss
 
         private void SetProcessInformation()
         {
-            int pcbHeaderStart = GetStartOfProccess(currentProcessNode.Value);
-            ram.SetPcbHeaderStart(pcbHeaderStart);
-            ram.SetInstructionStart(pcbHeaderStart + pcbMetaDataSize + pcbSize);
+            if (currentProcessNode != null)
+            {
+                int pcbHeaderStart = GetStartOfProccess(currentProcessNode.Value);
+                ram.SetPcbHeaderStart(pcbHeaderStart);
+                ram.SetInstructionStart(pcbHeaderStart + pcbMetaDataSize + pcbSize);
+            }
+
             //get instruction size
             //ram.GetMemoryAtIndex(_pcbMetaDataStart, 4, BitConverter.GetBytes(instructionBytes.Length));
         }
@@ -169,6 +173,12 @@ namespace Snoss
                 currentProcessNode = currentProcessNode.Next;
             }
         }
+
+
+        private int lastTime = 0;
+
+        #region Alex's method job
+
 
         DateTime switchTime = DateTime.Now.AddMilliseconds(500);
         private bool TimeToSwitch()
@@ -198,29 +208,49 @@ namespace Snoss
             return switchProcess;
         }
 
-        /// <summary>
-        ///  Get the process information 
-        /// </summary>
         public void retrieveProcessInfo()
         {
             //for each process in process id:
             //display 
             if(processIds.Count != 0)
             {
-                foreach (var process in  processIds)
+                foreach (int process in  processIds)
                 {
-                    Console.WriteLine("Process ID : " + process);
-                    Console.WriteLine("Process State : ");
-                    Console.WriteLine("Process File Name : "  );
-                    Console.WriteLine("Process instruction pointer : " );
-                    Console.WriteLine("Register Values : ");
+                    //So for process id 1, 2, etc
+                    int dataStart = ramMetaDataSize + (process * processSize);
+                    int dataEnd = dataStart + 20;
+                     
+                    //now list the necessary details : pid, state, executable file name, instruction pointer, register values
+                    string pid = ""+ process;
+                    string state = "";
+                    string executablefileName = "";
 
+                    StringBuilder registerValuesSb = new StringBuilder();
+                    for (int i = 0; i < registers.Length; i++)
+                    {
+                        registerValuesSb.Append(Convert.ToString(ram.GetMemoryAtIndex(dataStart, i + 8, 2)));
+                    }
+                    //0-4
+                    string IP = "" + ram.GetMemoryAtIndex(dataStart,0,4);
+                    if (ram.GetCurrentProcessId() == process)
+                    {
+                        state = "running";
+                    }
+                    else
+                    {
+                        state = "waiting";
+                    }
+
+                    Console.WriteLine("PID: " + pid + " state : " + state + " instruction pointer : " + IP + " register values " + registerValuesSb);
                 }
+            }
+            else
+            {
+                Console.WriteLine("There currently is no running process to display");
             }
         }
         
-        /// kill process or remove all data of process with the id from the list of ids
-        /// 
+       
         public void removeProcessFromList(int id)
         {  //if the process contains the id
             if(processIds.Contains(id))
@@ -228,8 +258,18 @@ namespace Snoss
                 //remove the process id from the list
                 processIds.Remove(id);
                 //scape off the process data from the RAM 
+                int dataStart = ramMetaDataSize + (id * processSize);
+                int dataEnd = dataStart + 1000;
+                byte[] zerobyte = new byte[] { 0 };
+                for(int i = 0; i < 1000; i++)
+                {
+                    //from the start to the end empty the process from the RAM
+                    ram.WriteToMemoryAtIndex(dataStart,i,zerobyte);
+                }
             }
         }
+        #endregion
+
         public void PrintRegisters()
         {
             for (int i = 0; i < registers.Length; i++)

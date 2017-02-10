@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace Snoss
 {
@@ -15,15 +16,6 @@ namespace Snoss
             {
                 Console.WriteLine("Executing " + fileName + "...");
                 string location = Assembler.TranslateFile(totalPath);
-                ///if the program ends with &
-                if(fileName.Contains("&"))
-                {
-
-                } 
-                else
-                {
-
-                }
                 cpu.LoadProgram(location, i);
             }
             else
@@ -68,25 +60,67 @@ namespace Snoss
 
         public void ParseCommand(string command)
         {
-            switch (command.Split(' ')[0])
+            string[] commandArray = command.Split(' ');
+            bool threaded = false;
+            if (commandArray[commandArray.Length - 1].Equals("&"))
+            {
+                threaded = true;
+            }
+            switch (commandArray[0])
             {
                 case "exit":
                     Exit();
                     break;
                 case "ls":
-                    ListAvailablePrograms();
+                    if (threaded)
+                    {
+                        //Console.WriteLine("Running threaded ls");
+                        new Thread(ListAvailablePrograms).Start();
+                    }
+                    else
+                    {
+                        ListAvailablePrograms();
+                    }
                     break;
                 case "ps":
-                    ListRunningProcessesWithIds();
+                    if (threaded)
+                    {
+                        new Thread(ListRunningProcessesWithIds).Start();
+                    }
+                    else
+                    {
+                        ListRunningProcessesWithIds();
+                    }
                     break;
                 case "exec":
-                    ExecuteProgram(command.Split(' ')[1], false);
+                    if (threaded)
+                    {
+                        new Thread(() => ExecuteProgram(commandArray[1], false)).Start();
+                    }
+                    else
+                    {
+                        ExecuteProgram(commandArray[1], false);
+                    }
                     break;
                 case "exec_i":
-                    ExecuteProgram(command.Split(' ')[1], true);
+                    if (threaded)
+                    {
+                        new Thread(() => ExecuteProgram(commandArray[1], true)).Start();
+                    }
+                    else
+                    {
+                        ExecuteProgram(commandArray[1], true);
+                    }
                     break;
                 case "kill":
-                    KillProcess(command.Split(' ')[1]);
+                    if (threaded)
+                    {
+                        new Thread(() => ExecuteProgram(commandArray[1], true)).Start();
+                    }
+                    else
+                    {
+                        KillProcess(commandArray[1]);
+                    }
                     break;
                 default:
                     Console.WriteLine("Error Unknown command.");

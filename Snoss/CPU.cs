@@ -108,6 +108,31 @@ namespace Snoss
 
         }
 
+        public void RunProgramNotThreaded(bool i)
+        {
+            //loop to execute instruction lines
+            run = true;
+            while (run)
+            {
+                //byte[] instruction = ram.GetMemoryAtIndex(instructionStart, instructionPointer, 4);
+                //instructionPointer += 4;
+                //Console.WriteLine("Instruction pointer set to: {0}", instructionPointer);
+                //if (i)
+                //{
+                //    Console.WriteLine("State of registers before instruction: ");
+                //    PrintRegisters();
+                //}
+                //ExecuteInstruction(instruction, i);
+
+                if (i)
+                {
+                    Console.WriteLine("State of registers after instruction: ");
+                    PrintRegisters();
+                }
+            }
+
+        }
+
         private void LoadProcess()
         {
             SetNextProcess();

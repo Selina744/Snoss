@@ -15,6 +15,15 @@ namespace Snoss
             {
                 Console.WriteLine("Executing " + fileName + "...");
                 string location = Assembler.TranslateFile(totalPath);
+                ///if the program ends with &
+                if(fileName.Contains("&"))
+                {
+
+                } 
+                else
+                {
+
+                }
                 cpu.LoadProgram(location, i);
             }
             else

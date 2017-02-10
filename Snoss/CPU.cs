@@ -169,13 +169,13 @@ namespace Snoss
             }
         }
 
-<<<<<<< HEAD
+
         private int lastTime = 0;
 
         #region Alex's method job
-=======
+
+
         DateTime switchTime = DateTime.Now.AddMilliseconds(500);
->>>>>>> 6fe92a0c960609cb2ce79d0d023c7a3f9de20844
         private bool TimeToSwitch()
         {
             DateTime now = DateTime.Now;
@@ -207,15 +207,34 @@ namespace Snoss
             //display 
             if(processIds.Count != 0)
             {
-                foreach (var process in  processIds)
+                foreach (int process in  processIds)
                 {
                     //So for process id 1, 2, etc
                     int dataStart = ramMetaDataSize + (process * processSize);
                     int dataEnd = dataStart + 20;
-                    for (int i = dataStart; i < dataEnd; i++)
-                    {
+                     
+                    //now list the necessary details : pid, state, executable file name, instruction pointer, register values
+                    string pid = ""+ process;
+                    string state = "";
+                    string executablefileName = "";
 
+                    StringBuilder registerValuesSb = new StringBuilder();
+                    for (int i = 0; i < registers.Length; i++)
+                    {
+                        registerValuesSb.Append(Convert.ToString(ram.GetMemoryAtIndex(dataStart, i + 8, 2)));
                     }
+                    //0-4
+                    string IP = "" + ram.GetMemoryAtIndex(dataStart,0,4);
+                    if (ram.GetCurrentProcessId() == process)
+                    {
+                        state = "running";
+                    }
+                    else
+                    {
+                        state = "waiting";
+                    }
+
+                    Console.WriteLine("PID: " + pid + " state : " + state + " instruction pointer : " + IP + " register values " + registerValuesSb);
                 }
             }
             else
@@ -232,6 +251,14 @@ namespace Snoss
                 //remove the process id from the list
                 processIds.Remove(id);
                 //scape off the process data from the RAM 
+                int dataStart = ramMetaDataSize + (id * processSize);
+                int dataEnd = dataStart + 1000;
+                byte[] zerobyte = new byte[] { 0 };
+                for(int i = 0; i < 1000; i++)
+                {
+                    //from the start to the end empty the process from the RAM
+                    ram.WriteToMemoryAtIndex(dataStart,i,zerobyte);
+                }
             }
         }
         #endregion

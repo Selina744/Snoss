@@ -8,8 +8,9 @@ namespace Snoss
 {
     enum LoggerLevels
     {
-        HIGH,
+        NOLEVEL,
         LOWLEVEL,
-        NOLEVEL
+        HIGH
+        
     };
 }

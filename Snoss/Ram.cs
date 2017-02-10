@@ -4,9 +4,6 @@ namespace Snoss
 {
     class Ram
     {
-        private int instructionStart;
-        private int pcbHeaderStart;
-        private int currentProcessId;
 
         private byte[] ram = new byte[10000];
 
@@ -44,39 +41,39 @@ namespace Snoss
 
         public void SetInstructionStart(int instructionStart)
         {
-            //WriteToMemoryAtIndex(0, 4, BitConverter.GetBytes(instructionStart));
-            this.instructionStart = instructionStart;
+            WriteToMemoryAtIndex(0, 4, BitConverter.GetBytes(instructionStart));
+            //this.instructionStart = instructionStart;
         }
 
         public int GetInstructionStart()
         {
-            //return GetMemoryAtIndex(0, 4, 4);
-            return instructionStart;
+            return BitConverter.ToInt32(GetMemoryAtIndex(0, 4, 4), 0);
+            //return instructionStart;
         }
 
         //The start of the current running program
         public int GetPcbHeaderStart()
         {
-           //return GetMemoryAtIndex(0, 0, 4);
-           return pcbHeaderStart; 
+           return BitConverter.ToInt32(GetMemoryAtIndex(0, 0, 4), 0);
+           //return pcbHeaderStart; 
         }
 
         public void SetPcbHeaderStart(int pcbHeaderStart)
         {
-            //WriteToMemoryAtIndex(0, 0, BitConverter.GetBytes(instructionStart));
-            this.pcbHeaderStart = pcbHeaderStart;
+            WriteToMemoryAtIndex(0, 0, BitConverter.GetBytes(pcbHeaderStart));
+            //this.pcbHeaderStart = pcbHeaderStart;
         }
 
         public void SetCurrentProcessId(int processId)
         {
-            //WriteToMemoryAtIndex(0, 8, BitConverter.GetBytes(instructionStart));
-            currentProcessId = processId;
+            WriteToMemoryAtIndex(0, 8, BitConverter.GetBytes(processId));
+            //currentProcessId = processId;
         }
 
         public int GetCurrentProcessId()
         {
-            //return GetMemoryAtIndex(0, 8, 4);
-            return currentProcessId;
+            return BitConverter.ToInt32(GetMemoryAtIndex(0, 8, 4), 0);
+            //return currentProcessId;
         }
     }
 }
